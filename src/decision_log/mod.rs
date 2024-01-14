@@ -1,3 +1,5 @@
+pub mod serialize;
+
 use std::fmt::{Debug, Formatter};
 use std::sync::Arc;
 
@@ -9,14 +11,12 @@ use atlas_common::node_id::NodeId;
 use atlas_common::ordering::{Orderable, SeqNo};
 use atlas_common::serialization_helper::SerType;
 use atlas_communication::message::StoredMessage;
+use atlas_core::executor::DecisionExecutorHandle;
 use atlas_core::messages::ClientRqInfo;
-use atlas_core::ordering_protocol::{Decision, DecisionMetadata, ProtocolMessage, ShareableConsensusMessage, ShareableMessage};
+use atlas_core::ordering_protocol::{BatchedDecision, Decision, DecisionMetadata, ProtocolMessage, ShareableConsensusMessage, ShareableMessage};
 use atlas_core::ordering_protocol::loggable::{LoggableOrderProtocol, PersistentOrderProtocolTypes, PProof};
 use atlas_core::ordering_protocol::networking::serialize::OrderingProtocolMessage;
-use atlas_smr_application::app::UpdateBatch;
-use atlas_smr_application::ExecutorHandle;
-use atlas_smr_application::serialize::ApplicationData;
-use crate::networking::serialize::DecisionLogMessage;
+use crate::decision_log::serialize::DecisionLogMessage;
 use crate::persistent_log::PersistentDecisionLog;
 
 pub type DecLog<RQ, OP, POP, LS> = <LS as DecisionLogMessage<RQ, OP, POP>>::DecLog;
@@ -41,7 +41,7 @@ pub struct LoggedDecision<O> {
 /// by the decision log
 #[derive(Clone)]
 pub enum LoggedDecisionValue<O> {
-    Execute(UpdateBatch<O>),
+    Execute(BatchedDecision<O>),
     ExecutionNotNeeded,
 }
 
@@ -71,16 +71,19 @@ pub trait RangeOrderable: Orderable {
 /// Also important, the [Orderable] trait implemented here should return the sequence
 /// number of the last DECIDED decision, not of the ongoing decisions
 ///
-pub trait DecisionLog<RQ, OP, NT, PL>: RangeOrderable + DecisionLogPersistenceHelper<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>
-    where RQ: SerType, OP: LoggableOrderProtocol<RQ, NT> {
+pub trait DecisionLog<RQ, OP, NT, PL, EX>: RangeOrderable + DecisionLogPersistenceHelper<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>
+    where RQ: SerType,
+          OP: LoggableOrderProtocol<RQ, NT> {
     /// The serialization type containing the serializable parts for the decision log
     type LogSerialization: DecisionLogMessage<RQ, OP::Serialization, OP::PersistableTypes> + 'static;
 
     type Config: Send + 'static;
 
     /// Initialize the decision log of the
-    fn initialize_decision_log(config: Self::Config, persistent_log: PL, executor_handle: ExecutorHandle<RQ>) -> Result<Self>
-        where PL: PersistentDecisionLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>, Self: Sized;
+    fn initialize_decision_log(config: Self::Config, persistent_log: PL, executor_handle: EX) -> Result<Self>
+        where PL: PersistentDecisionLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>,
+              EX: DecisionExecutorHandle<RQ>,
+              Self: Sized;
 
     /// Clear the sequence number in the decision log
     fn clear_sequence_number(&mut self, seq: SeqNo) -> Result<()>
@@ -143,7 +146,7 @@ pub trait DecisionLog<RQ, OP, NT, PL>: RangeOrderable + DecisionLogPersistenceHe
         where PL: PersistentDecisionLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>;
 }
 
-pub trait PartiallyWriteableDecLog<RQ, OP, NT, PL>: DecisionLog<RQ, OP, NT, PL>
+pub trait PartiallyWriteableDecLog<RQ, OP, NT, PL, EX>: DecisionLog<RQ, OP, NT, PL, EX>
     where RQ: SerType, OP: LoggableOrderProtocol<RQ, NT> {
     fn start_installing_log(&mut self) -> Result<()>
         where PL: PersistentDecisionLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>;
@@ -183,7 +186,7 @@ impl<O> LoggedDecision<O> {
         }
     }
 
-    pub fn from_decision_with_execution(seq: SeqNo, client_rqs: Vec<ClientRqInfo>, update: UpdateBatch<O>) -> Self {
+    pub fn from_decision_with_execution(seq: SeqNo, client_rqs: Vec<ClientRqInfo>, update: BatchedDecision<O>) -> Self {
         Self {
             seq,
             contained_client_requests: client_rqs,
@@ -212,18 +215,6 @@ impl LoggingDecision {
                 messages.push((message.header().from(), message.header().digest().clone()))
             }
             LoggingDecision::Proof(_) => unreachable!(),
-        }
-    }
-}
-
-/// Unwrap a shareable message, avoiding cloning at all costs
-pub fn unwrap_shareable_message<T: Clone>(message: ShareableMessage<T>) -> StoredMessage<T> {
-    match Arc::try_unwrap(message) {
-        Ok(msg) => {
-            msg.into_inner()
-        }
-        Err(pointer) => {
-            (**pointer).clone()
         }
     }
 }

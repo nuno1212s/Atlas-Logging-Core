@@ -10,9 +10,9 @@ use atlas_communication::message::StoredMessage;
 use atlas_core::ordering_protocol::loggable::{LoggableOrderProtocol};
 use atlas_core::ordering_protocol::networking::serialize::{NetworkView};
 use atlas_core::timeouts::{RqTimeout, Timeouts};
+use crate::decision_log::{DecisionLog, LoggedDecision};
 use crate::log_transfer::networking::serialize::LogTransferMessage;
 use crate::persistent_log::PersistentDecisionLog;
-use crate::smr_decision_log::{DecisionLog, LoggedDecision};
 
 pub mod networking;
 
@@ -60,10 +60,10 @@ pub enum LTPollResult<LT, RQ> {
 /// the [DecisionLog], we decided that it makes sense for them to be more tightly coupled.
 ///TODO: Work on Getting partial log installations integrated with this log transfer
 /// trait via [PartiallyWriteableDecLog]
-pub trait LogTransferProtocol<RQ, OP, DL, NT, PL>: Send
+pub trait LogTransferProtocol<RQ, OP, DL, NT, PL, EX>: Send
     where RQ: SerType,
           OP: LoggableOrderProtocol<RQ, NT>,
-          DL: DecisionLog<RQ, OP, NT, PL> {
+          DL: DecisionLog<RQ, OP, NT, PL, EX> {
     /// The type which implements StateTransferMessage, to be implemented by the developer
     type Serialization: LogTransferMessage<RQ, OP::Serialization> + 'static;
 
