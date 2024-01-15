@@ -19,7 +19,7 @@ pub trait OrderProtocolLogPart: Orderable {
 }
 
 
-pub trait DecisionLogMessage<RQ, OPM, POP>: Send + Sync {
+pub trait DecisionLogMessage<RQ, OPM, POP>: Send + Sync + 'static {
     /// A metadata type to allow for decision logs to include some
     /// more specific information into their decision log, apart from
     /// the list of proofs
