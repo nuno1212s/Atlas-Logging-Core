@@ -19,7 +19,7 @@ pub trait LogTransferMessage<RQ, OP>: Send + Sync {
     /// Verify the message and return the message if it is valid
     fn verify_log_message<NI, LVH>(network_info: &Arc<NI>,
                                    header: &Header,
-                                   message: Self::LogTransferMessage) -> Result<Self::LogTransferMessage>
+                                   message: &Self::LogTransferMessage) -> Result<()>
         where NI: NetworkInformationProvider,
               LVH: LogTransferVerificationHelper<RQ, OP, NI>,
               OP: OrderingProtocolMessage<RQ>;
@@ -34,11 +34,11 @@ pub trait LogTransferMessage<RQ, OP>: Send + Sync {
 impl<RQ, P> LogTransferMessage<RQ, P> for NoProtocol {
     type LogTransferMessage = ();
 
-    fn verify_log_message<NI, LVH>(network_info: &Arc<NI>, header: &Header, message: Self::LogTransferMessage) -> atlas_common::error::Result<Self::LogTransferMessage>
+    fn verify_log_message<NI, LVH>(network_info: &Arc<NI>, header: &Header, message: &Self::LogTransferMessage) -> atlas_common::error::Result<Self::LogTransferMessage>
         where NI: NetworkInformationProvider,
               P: OrderingProtocolMessage<RQ>,
               LVH: LogTransferVerificationHelper<RQ, P, NI>, {
-        Ok(message)
+        Ok(())
     }
 
     #[cfg(feature = "serialize_capnp")]

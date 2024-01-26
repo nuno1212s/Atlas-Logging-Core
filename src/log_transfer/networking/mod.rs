@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use atlas_common::crypto::hash::Digest;
 use atlas_common::error::*;
 use atlas_common::node_id::NodeId;
-use atlas_communication::message::{SerializedMessage, StoredSerializedProtocolMessage};
+use atlas_communication::message::{SerializedMessage, StoredSerializedMessage};
 use crate::log_transfer::networking::serialize::LogTransferMessage;
 
 pub mod signature_ver;
@@ -87,5 +87,5 @@ pub trait LogTransferSendNode<RQ, OP, LPM>: Send + Sync where LPM: LogTransferMe
     /// Ok if there is a current connection to the targets or err if not. No other checks are made
     /// on the success of the message dispatch
     #[inline(always)]
-    fn broadcast_serialized(&self, messages: BTreeMap<NodeId, StoredSerializedProtocolMessage<LPM::LogTransferMessage>>) -> std::result::Result<(), Vec<NodeId>>;
+    fn broadcast_serialized(&self, messages: BTreeMap<NodeId, StoredSerializedMessage<LPM::LogTransferMessage>>) -> std::result::Result<(), Vec<NodeId>>;
 }
