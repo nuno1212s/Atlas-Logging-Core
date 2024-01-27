@@ -3,7 +3,7 @@ use std::sync::Arc;
 use atlas_common::error::*;
 use atlas_common::serialization_helper::SerType;
 use atlas_communication::message::Header;
-use atlas_communication::reconfiguration_node::NetworkInformationProvider;
+use atlas_communication::reconfiguration::NetworkInformationProvider;
 
 use atlas_core::ordering_protocol::networking::serialize::OrderingProtocolMessage;
 use atlas_core::serialize::NoProtocol;
