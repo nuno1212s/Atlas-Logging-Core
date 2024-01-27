@@ -3,8 +3,7 @@ use atlas_common::ordering::{Orderable, SeqNo};
 use atlas_common::serialization_helper::SerType;
 use atlas_communication::reconfiguration_node::NetworkInformationProvider;
 use atlas_core::ordering_protocol::loggable::PersistentOrderProtocolTypes;
-use atlas_core::ordering_protocol::networking::serialize::{OrderingProtocolMessage};
-use atlas_core::ordering_protocol::networking::signature_ver::OrderProtocolSignatureVerificationHelper;
+use atlas_core::ordering_protocol::networking::serialize::{OrderingProtocolMessage, OrderProtocolVerificationHelper};
 
 pub trait OrderProtocolLog: Orderable {
     // At the moment I only need orderable, but I might need more in the future
@@ -38,5 +37,5 @@ pub trait DecisionLogMessage<RQ, OPM, POP>: Send + Sync + 'static {
         where NI: NetworkInformationProvider,
               OPM: OrderingProtocolMessage<RQ>,
               POP: PersistentOrderProtocolTypes<RQ, OPM>,
-              OPVH: OrderProtocolSignatureVerificationHelper<RQ, OPM, NI>,;
+              OPVH: OrderProtocolVerificationHelper<RQ, OPM, NI>,;
 }

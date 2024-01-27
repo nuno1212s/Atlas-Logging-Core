@@ -1,7 +1,6 @@
 use atlas_communication::reconfiguration_node::NetworkInformationProvider;
 
-use atlas_core::ordering_protocol::networking::serialize::OrderingProtocolMessage;
-use atlas_core::ordering_protocol::networking::signature_ver::OrderProtocolSignatureVerificationHelper;
+use atlas_core::ordering_protocol::networking::serialize::{OrderingProtocolMessage, OrderProtocolVerificationHelper};
 
-pub trait LogTransferVerificationHelper<RQ, OP, NI>: OrderProtocolSignatureVerificationHelper<RQ, OP, NI>
+pub trait LogTransferVerificationHelper<RQ, OP, NI>: OrderProtocolVerificationHelper<RQ, OP, NI>
     where OP: OrderingProtocolMessage<RQ>, NI: NetworkInformationProvider {}
