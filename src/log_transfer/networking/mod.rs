@@ -7,7 +7,11 @@ use serde::{Deserialize, Serialize};
 use atlas_common::crypto::hash::Digest;
 use atlas_common::error::*;
 use atlas_common::node_id::NodeId;
+use atlas_common::serialization_helper::SerType;
 use atlas_communication::message::{SerializedMessage, StoredSerializedMessage};
+use atlas_core::ordering_protocol::loggable::LoggableOrderProtocol;
+use crate::decision_log::DecisionLog;
+use crate::log_transfer::LogTransferProtocol;
 use crate::log_transfer::networking::serialize::LogTransferMessage;
 
 pub mod signature_ver;
@@ -44,7 +48,6 @@ impl<P> Deref for LogTransfer<P> {
 
 /// A node abstraction to
 pub trait LogTransferSendNode<RQ, OP, LPM>: Send + Sync where LPM: LogTransferMessage<RQ, OP> {
-
     /// Our own ID
     #[inline(always)]
     fn id(&self) -> NodeId;

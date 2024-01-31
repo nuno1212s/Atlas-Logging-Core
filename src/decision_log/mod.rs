@@ -71,67 +71,54 @@ pub trait RangeOrderable: Orderable {
 /// Also important, the [Orderable] trait implemented here should return the sequence
 /// number of the last DECIDED decision, not of the ongoing decisions
 ///
-pub trait DecisionLog<RQ, OP, NT, PL, EX>: RangeOrderable + DecisionLogPersistenceHelper<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>
+pub trait DecisionLog<RQ, OP>: RangeOrderable + DecisionLogPersistenceHelper<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>
     where RQ: SerType,
-          OP: LoggableOrderProtocol<RQ, NT> {
+          OP: LoggableOrderProtocol<RQ> {
+    
     /// The serialization type containing the serializable parts for the decision log
     type LogSerialization: DecisionLogMessage<RQ, OP::Serialization, OP::PersistableTypes> + 'static;
 
     type Config: Send + 'static;
 
-    /// Initialize the decision log of the
-    fn initialize_decision_log(config: Self::Config, persistent_log: PL, executor_handle: EX) -> Result<Self>
-        where PL: PersistentDecisionLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>,
-              EX: DecisionExecutorHandle<RQ>,
-              Self: Sized;
-
     /// Clear the sequence number in the decision log
-    fn clear_sequence_number(&mut self, seq: SeqNo) -> Result<()>
-        where PL: PersistentDecisionLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>;
+    fn clear_sequence_number(&mut self, seq: SeqNo) -> Result<()>;
 
     /// Clear all decisions forward of the provided one (inclusive)
-    fn clear_decisions_forward(&mut self, seq: SeqNo) -> Result<()>
-        where PL: PersistentDecisionLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>;
+    fn clear_decisions_forward(&mut self, seq: SeqNo) -> Result<()>;
 
     /// The given sequence number was advanced in state with the given
     /// All the decisions that have been logged should be returned in the results of this
     /// function, so the replica can keep track of which sequence number we are currently in
     /// and when we need to check point the state or other related procedures.
-    /// The results returned in this function should never
+    /// The results returned in this function should never be lost
     fn decision_information_received(&mut self,
                                      decision_info: Decision<DecisionMetadata<RQ, OP::Serialization>, ProtocolMessage<RQ, OP::Serialization>, RQ>)
-                                     -> Result<MaybeVec<LoggedDecision<RQ>>>
-        where PL: PersistentDecisionLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>;
+                                     -> Result<MaybeVec<LoggedDecision<RQ>>>;
 
     /// Install an entire proof into the decision log.
     /// Similarly to the [decision_information_received()] the decisions added to the decision log
     /// should be returned in the return object, following the total order of the order protocol
     fn install_proof(&mut self, proof: PProof<RQ, OP::Serialization, OP::PersistableTypes>)
-                     -> Result<MaybeVec<LoggedDecision<RQ>>>
-        where PL: PersistentDecisionLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>;
+                     -> Result<MaybeVec<LoggedDecision<RQ>>>;
 
     /// Install a log received from other replicas in the system
     /// returns a list of all requests that should then be executed by the application.
     /// as well as the last execution contained in the sequence number
     fn install_log(&mut self, dec_log: DecLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>)
-                   -> Result<MaybeVec<LoggedDecision<RQ>>>
-        where PL: PersistentDecisionLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>;
+                   -> Result<MaybeVec<LoggedDecision<RQ>>>;
 
     /// Take a snapshot of our current decision log.
     fn snapshot_log(&mut self)
-                    -> Result<DecLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>>
-        where PL: PersistentDecisionLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>;
+                    -> Result<DecLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>>;
 
     /// Get the reference to the current log
     fn current_log(&self)
-                   -> Result<&DecLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>>
-        where PL: PersistentDecisionLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>;
+                   -> Result<&DecLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>>;
 
     /// A checkpoint has been done of the state, meaning we can effectively
     /// delete the decisions up until the given sequence number.
     fn state_checkpoint(&mut self, seq: SeqNo)
-                        -> Result<()>
-        where PL: PersistentDecisionLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>;
+                        -> Result<()>;
 
     /// Verify the sequence number sent by another replica. This doesn't pass a mutable reference since we don't want to
     /// make any changes to the state of the protocol here (or allow the implementer to do so). Instead, we want to
@@ -142,18 +129,27 @@ pub trait DecisionLog<RQ, OP, NT, PL, EX>: RangeOrderable + DecisionLogPersisten
     fn sequence_number_with_proof(&self) -> Result<Option<(SeqNo, PProof<RQ, OP::Serialization, OP::PersistableTypes>)>>;
 
     /// Get the proof of decision for a given sequence number
-    fn get_proof(&self, seq: SeqNo) -> Result<Option<PProof<RQ, OP::Serialization, OP::PersistableTypes>>>
-        where PL: PersistentDecisionLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>;
+    fn get_proof(&self, seq: SeqNo) -> Result<Option<PProof<RQ, OP::Serialization, OP::PersistableTypes>>>;
 }
 
-pub trait PartiallyWriteableDecLog<RQ, OP, NT, PL, EX>: DecisionLog<RQ, OP, NT, PL, EX>
-    where RQ: SerType, OP: LoggableOrderProtocol<RQ, NT> {
-    fn start_installing_log(&mut self) -> Result<()>
-        where PL: PersistentDecisionLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>;
+pub trait PartiallyWriteableDecLog<RQ, OP>: DecisionLog<RQ, OP>
+    where RQ: SerType, OP: LoggableOrderProtocol<RQ> {
+    fn start_installing_log(&mut self) -> Result<()>;
 
     fn install_log_part(&mut self, log_part: DecLogPart<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>) -> Result<()>;
 
     fn complete_log_install(&mut self) -> Result<()>;
+}
+
+pub trait DecisionLogInitializer<RQ, OP, PL, EX>: DecisionLog<RQ, OP>
+    where RQ: SerType, OP: LoggableOrderProtocol<RQ> {
+    
+    /// Initialize the decision log of the
+    fn initialize_decision_log(config: Self::Config, persistent_log: PL, executor_handle: EX) -> Result<Self>
+        where PL: PersistentDecisionLog<RQ, OP::Serialization, OP::PersistableTypes, Self::LogSerialization>,
+              EX: DecisionExecutorHandle<RQ>,
+              Self: Sized;
+
 }
 
 /// Persistence helper for the decision log
