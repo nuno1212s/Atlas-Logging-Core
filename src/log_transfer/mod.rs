@@ -7,17 +7,18 @@ use atlas_common::ordering::SeqNo;
 use atlas_common::serialization_helper::SerType;
 use atlas_communication::message::StoredMessage;
 
-use atlas_core::ordering_protocol::loggable::{LoggableOrderProtocol};
-use atlas_core::ordering_protocol::networking::serialize::{NetworkView};
-use atlas_core::timeouts::{RqTimeout, Timeouts};
 use crate::decision_log::{DecisionLog, LoggedDecision};
-use crate::log_transfer::networking::LogTransferSendNode;
 use crate::log_transfer::networking::serialize::LogTransferMessage;
+use crate::log_transfer::networking::LogTransferSendNode;
 use crate::persistent_log::PersistentDecisionLog;
+use atlas_core::ordering_protocol::loggable::LoggableOrderProtocol;
+use atlas_core::ordering_protocol::networking::serialize::NetworkView;
+use atlas_core::timeouts::{RqTimeout, Timeouts};
 
 pub mod networking;
 
-pub type LogTM<RQ, OP, M: LogTransferMessage<RQ, OP>> = <M as LogTransferMessage<RQ, OP>>::LogTransferMessage;
+pub type LogTM<RQ, OP, M: LogTransferMessage<RQ, OP>> =
+    <M as LogTransferMessage<RQ, OP>>::LogTransferMessage;
 
 /// The result of processing a message in the log transfer protocol
 pub enum LTResult<RQ> {
@@ -62,9 +63,11 @@ pub enum LTPollResult<LT, RQ> {
 ///TODO: Work on Getting partial log installations integrated with this log transfer
 /// trait via [PartiallyWriteableDecLog]
 pub trait LogTransferProtocol<RQ, OP, DL>: Send
-    where RQ: SerType,
-          OP: LoggableOrderProtocol<RQ>,
-          DL: DecisionLog<RQ, OP> {
+where
+    RQ: SerType,
+    OP: LoggableOrderProtocol<RQ>,
+    DL: DecisionLog<RQ, OP>,
+{
     /// The type which implements StateTransferMessage, to be implemented by the developer
     type Serialization: LogTransferMessage<RQ, OP::Serialization> + 'static;
 
@@ -73,39 +76,59 @@ pub trait LogTransferProtocol<RQ, OP, DL>: Send
 
     /// Request the latest logs from the rest of the replicas
     fn request_latest_log<V>(&mut self, decision_log: &mut DL, view: V) -> Result<()>
-        where V: NetworkView;
+    where
+        V: NetworkView;
 
     /// Polling method for the log transfer protocol
-    fn poll<>(&mut self) -> Result<LTPollResult<LogTM<RQ, OP::Serialization, Self::Serialization>, RQ>>;
+    fn poll(
+        &mut self,
+    ) -> Result<LTPollResult<LogTM<RQ, OP::Serialization, Self::Serialization>, RQ>>;
 
     /// Handle a state transfer protocol message that was received while executing the ordering protocol
-    fn handle_off_ctx_message<V>(&mut self, decision_log: &mut DL,
-                                 view: V,
-                                 message: StoredMessage<LogTM<RQ, OP::Serialization, Self::Serialization>>)
-                                 -> Result<()>
-        where V: NetworkView,;
+    fn handle_off_ctx_message<V>(
+        &mut self,
+        decision_log: &mut DL,
+        view: V,
+        message: StoredMessage<LogTM<RQ, OP::Serialization, Self::Serialization>>,
+    ) -> Result<()>
+    where
+        V: NetworkView;
 
     /// Process a log transfer protocol message, received from other replicas
-    fn process_message<V>(&mut self, decision_log: &mut DL, view: V,
-                          message: StoredMessage<LogTM<RQ, OP::Serialization, Self::Serialization>>) -> Result<LTResult<RQ>>
-        where V: NetworkView,;
+    fn process_message<V>(
+        &mut self,
+        decision_log: &mut DL,
+        view: V,
+        message: StoredMessage<LogTM<RQ, OP::Serialization, Self::Serialization>>,
+    ) -> Result<LTResult<RQ>>
+    where
+        V: NetworkView;
 
     /// Handle a timeout received from the timeout layer
     fn handle_timeout<V>(&mut self, view: V, timeout: Vec<RqTimeout>) -> Result<LTTimeoutResult>
-        where V: NetworkView,;
+    where
+        V: NetworkView;
 }
 
 /// The complete trait for a log transfer protocol initializer initialization.
 ///
-pub trait LogTransferProtocolInitializer<RQ, OP, DL, PL, EX, NT>: LogTransferProtocol<RQ, OP, DL>
-    where RQ: SerType,
-          OP: LoggableOrderProtocol<RQ>,
-          DL: DecisionLog<RQ, OP> {
-
+pub trait LogTransferProtocolInitializer<RQ, OP, DL, PL, EX, NT>:
+    LogTransferProtocol<RQ, OP, DL>
+where
+    RQ: SerType,
+    OP: LoggableOrderProtocol<RQ>,
+    DL: DecisionLog<RQ, OP>,
+{
     fn initialize(config: Self::Config, timeout: Timeouts, node: Arc<NT>, log: PL) -> Result<Self>
-        where Self: Sized,
-              PL: PersistentDecisionLog<RQ, OP::Serialization, OP::PersistableTypes, DL::LogSerialization>,
-              NT: LogTransferSendNode<RQ, OP::Serialization, Self::Serialization>;
+    where
+        Self: Sized,
+        PL: PersistentDecisionLog<
+            RQ,
+            OP::Serialization,
+            OP::PersistableTypes,
+            DL::LogSerialization,
+        >,
+        NT: LogTransferSendNode<RQ, OP::Serialization, Self::Serialization>;
 }
 
 impl<RQ: SerType> Debug for LTResult<RQ> {

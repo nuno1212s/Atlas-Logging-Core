@@ -1,9 +1,11 @@
-use std::sync::Arc;
 use atlas_common::ordering::{Orderable, SeqNo};
 use atlas_common::serialization_helper::SerType;
 use atlas_communication::reconfiguration::NetworkInformationProvider;
 use atlas_core::ordering_protocol::loggable::PersistentOrderProtocolTypes;
-use atlas_core::ordering_protocol::networking::serialize::{OrderingProtocolMessage, OrderProtocolVerificationHelper};
+use atlas_core::ordering_protocol::networking::serialize::{
+    OrderProtocolVerificationHelper, OrderingProtocolMessage,
+};
+use std::sync::Arc;
 
 pub trait OrderProtocolLog: Orderable {
     // At the moment I only need orderable, but I might need more in the future
@@ -16,7 +18,6 @@ pub trait OrderProtocolLogPart: Orderable {
     // From the orderable implementation
     fn first_seq(&self) -> Option<SeqNo>;
 }
-
 
 pub trait DecisionLogMessage<RQ, OPM, POP>: Send + Sync + 'static {
     /// A metadata type to allow for decision logs to include some
@@ -32,10 +33,13 @@ pub trait DecisionLogMessage<RQ, OPM, POP>: Send + Sync + 'static {
     /// (In the case of BFT SMR the log is GCed after a checkpoint of the application)
     type DecLogPart: OrderProtocolLogPart + SerType;
 
-    fn verify_decision_log<NI, OPVH>(network_info: &Arc<NI>, dec_log: Self::DecLog)
-                                     -> atlas_common::error::Result<Self::DecLog>
-        where NI: NetworkInformationProvider,
-              OPM: OrderingProtocolMessage<RQ>,
-              POP: PersistentOrderProtocolTypes<RQ, OPM>,
-              OPVH: OrderProtocolVerificationHelper<RQ, OPM, NI>,;
+    fn verify_decision_log<NI, OPVH>(
+        network_info: &Arc<NI>,
+        dec_log: Self::DecLog,
+    ) -> atlas_common::error::Result<Self::DecLog>
+    where
+        NI: NetworkInformationProvider,
+        OPM: OrderingProtocolMessage<RQ>,
+        POP: PersistentOrderProtocolTypes<RQ, OPM>,
+        OPVH: OrderProtocolVerificationHelper<RQ, OPM, NI>;
 }
