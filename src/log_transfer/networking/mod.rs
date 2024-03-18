@@ -4,7 +4,6 @@ use std::ops::Deref;
 #[cfg(feature = "serialize_serde")]
 use serde::{Deserialize, Serialize};
 
-
 use crate::log_transfer::networking::serialize::LogTransferMessage;
 
 use atlas_common::crypto::hash::Digest;
@@ -12,7 +11,6 @@ use atlas_common::error::*;
 use atlas_common::node_id::NodeId;
 
 use atlas_communication::message::{SerializedMessage, StoredSerializedMessage};
-
 
 pub mod serialize;
 pub mod signature_ver;

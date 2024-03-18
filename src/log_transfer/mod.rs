@@ -17,8 +17,7 @@ use atlas_core::timeouts::{RqTimeout, Timeouts};
 
 pub mod networking;
 
-pub type LogTM<RQ, OP, M> =
-    <M as LogTransferMessage<RQ, OP>>::LogTransferMessage;
+pub type LogTM<RQ, OP, M> = <M as LogTransferMessage<RQ, OP>>::LogTransferMessage;
 
 /// The result of processing a message in the log transfer protocol
 pub enum LTResult<RQ> {
