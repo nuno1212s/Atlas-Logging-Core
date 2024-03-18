@@ -4,15 +4,15 @@ use std::ops::Deref;
 #[cfg(feature = "serialize_serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::decision_log::DecisionLog;
+
 use crate::log_transfer::networking::serialize::LogTransferMessage;
-use crate::log_transfer::LogTransferProtocol;
+
 use atlas_common::crypto::hash::Digest;
 use atlas_common::error::*;
 use atlas_common::node_id::NodeId;
-use atlas_common::serialization_helper::SerType;
+
 use atlas_communication::message::{SerializedMessage, StoredSerializedMessage};
-use atlas_core::ordering_protocol::loggable::LoggableOrderProtocol;
+
 
 pub mod serialize;
 pub mod signature_ver;
@@ -54,21 +54,18 @@ where
     LPM: LogTransferMessage<RQ, OP>,
 {
     /// Our own ID
-    #[inline(always)]
     fn id(&self) -> NodeId;
 
     /// Sends a message to a given target.
     /// Does not block on the message sent. Returns a result that is
     /// Ok if there is a current connection to the target or err if not. No other checks are made
     /// on the success of the message dispatch
-    #[inline(always)]
     fn send(&self, message: LPM::LogTransferMessage, target: NodeId, flush: bool) -> Result<()>;
 
     /// Sends a signed message to a given target
     /// Does not block on the message sent. Returns a result that is
     /// Ok if there is a current connection to the target or err if not. No other checks are made
     /// on the success of the message dispatch
-    #[inline(always)]
     fn send_signed(
         &self,
         message: LPM::LogTransferMessage,
@@ -80,7 +77,6 @@ where
     /// Does not block on the message sent. Returns a result that is
     /// Ok if there is a current connection to the targets or err if not. No other checks are made
     /// on the success of the message dispatch
-    #[inline(always)]
     fn broadcast(
         &self,
         message: LPM::LogTransferMessage,
@@ -91,7 +87,6 @@ where
     /// Does not block on the message sent. Returns a result that is
     /// Ok if there is a current connection to the targets or err if not. No other checks are made
     /// on the success of the message dispatch
-    #[inline(always)]
     fn broadcast_signed(
         &self,
         message: LPM::LogTransferMessage,
@@ -100,7 +95,6 @@ where
 
     /// Serialize a message to a given target.
     /// Creates the serialized byte buffer along with the header, so we can send it later.
-    #[inline(always)]
     fn serialize_digest_message(
         &self,
         message: LPM::LogTransferMessage,
@@ -110,7 +104,6 @@ where
     /// Does not block on the message sent. Returns a result that is
     /// Ok if there is a current connection to the targets or err if not. No other checks are made
     /// on the success of the message dispatch
-    #[inline(always)]
     fn broadcast_serialized(
         &self,
         messages: BTreeMap<NodeId, StoredSerializedMessage<LPM::LogTransferMessage>>,

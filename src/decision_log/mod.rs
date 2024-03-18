@@ -21,7 +21,6 @@ use atlas_core::ordering_protocol::loggable::{
 use atlas_core::ordering_protocol::networking::serialize::OrderingProtocolMessage;
 use atlas_core::ordering_protocol::{
     BatchedDecision, Decision, DecisionMetadata, ProtocolMessage, ShareableConsensusMessage,
-    ShareableMessage,
 };
 
 pub type DecLog<RQ, OP, POP, LS> = <LS as DecisionLogMessage<RQ, OP, POP>>::DecLog;
@@ -283,7 +282,7 @@ impl LoggingDecision {
     {
         match self {
             LoggingDecision::PartialDecision(_, messages) => {
-                messages.push((message.header().from(), message.header().digest().clone()))
+                messages.push((message.header().from(), *message.header().digest()))
             }
             LoggingDecision::Proof(_) => unreachable!(),
         }

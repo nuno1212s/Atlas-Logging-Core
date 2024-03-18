@@ -42,9 +42,9 @@ impl<RQ, P> LogTransferMessage<RQ, P> for NoProtocol {
     type LogTransferMessage = ();
 
     fn verify_log_message<NI, LVH>(
-        network_info: &Arc<NI>,
-        header: &Header,
-        message: &Self::LogTransferMessage,
+        _network_info: &Arc<NI>,
+        _header: &Header,
+        _message: &Self::LogTransferMessage,
     ) -> atlas_common::error::Result<Self::LogTransferMessage>
     where
         NI: NetworkInformationProvider,
