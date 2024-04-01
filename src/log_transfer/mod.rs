@@ -13,7 +13,7 @@ use crate::log_transfer::networking::LogTransferSendNode;
 use crate::persistent_log::PersistentDecisionLog;
 use atlas_core::ordering_protocol::loggable::LoggableOrderProtocol;
 use atlas_core::ordering_protocol::networking::serialize::NetworkView;
-use atlas_core::timeouts::{RqTimeout, Timeouts};
+use atlas_core::timeouts::timeout::{TimeoutModHandle, TimeoutableMod};
 
 pub mod networking;
 
@@ -61,7 +61,7 @@ pub enum LTPollResult<LT, RQ> {
 /// the [DecisionLog], we decided that it makes sense for them to be more tightly coupled.
 ///TODO: Work on Getting partial log installations integrated with this log transfer
 /// trait via [PartiallyWriteableDecLog]
-pub trait LogTransferProtocol<RQ, OP, DL>: Send
+pub trait LogTransferProtocol<RQ, OP, DL>: TimeoutableMod<LTTimeoutResult> + Send
 where
     RQ: SerType,
     OP: LoggableOrderProtocol<RQ>,
@@ -102,11 +102,6 @@ where
     ) -> Result<LTResult<RQ>>
     where
         V: NetworkView;
-
-    /// Handle a timeout received from the timeout layer
-    fn handle_timeout<V>(&mut self, view: V, timeout: Vec<RqTimeout>) -> Result<LTTimeoutResult>
-    where
-        V: NetworkView;
 }
 
 /// The complete trait for a log transfer protocol initializer initialization.
@@ -118,7 +113,12 @@ where
     OP: LoggableOrderProtocol<RQ>,
     DL: DecisionLog<RQ, OP>,
 {
-    fn initialize(config: Self::Config, timeout: Timeouts, node: Arc<NT>, log: PL) -> Result<Self>
+    fn initialize(
+        config: Self::Config,
+        timeout: TimeoutModHandle,
+        node: Arc<NT>,
+        log: PL,
+    ) -> Result<Self>
     where
         Self: Sized,
         PL: PersistentDecisionLog<
