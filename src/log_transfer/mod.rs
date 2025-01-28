@@ -4,7 +4,7 @@ use std::sync::Arc;
 use atlas_common::error::*;
 use atlas_common::maybe_vec::MaybeVec;
 use atlas_common::ordering::SeqNo;
-use atlas_common::serialization_helper::SerType;
+use atlas_common::serialization_helper::SerMsg;
 use atlas_communication::message::StoredMessage;
 
 use crate::decision_log::{DecisionLog, LoggedDecision};
@@ -63,7 +63,7 @@ pub enum LTPollResult<LT, RQ> {
 /// trait via [PartiallyWriteableDecLog]
 pub trait LogTransferProtocol<RQ, OP, DL>: TimeoutableMod<LTTimeoutResult> + Send
 where
-    RQ: SerType,
+    RQ: SerMsg,
     OP: LoggableOrderProtocol<RQ>,
     DL: DecisionLog<RQ, OP>,
 {
@@ -109,7 +109,7 @@ where
 pub trait LogTransferProtocolInitializer<RQ, OP, DL, PL, EX, NT>:
     LogTransferProtocol<RQ, OP, DL>
 where
-    RQ: SerType,
+    RQ: SerMsg,
     OP: LoggableOrderProtocol<RQ>,
     DL: DecisionLog<RQ, OP>,
 {
@@ -130,7 +130,7 @@ where
         NT: LogTransferSendNode<RQ, OP::Serialization, Self::Serialization>;
 }
 
-impl<RQ: SerType> Debug for LTResult<RQ> {
+impl<RQ: SerMsg> Debug for LTResult<RQ> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             LTResult::RunLTP => {

@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use atlas_common::error::*;
-use atlas_common::serialization_helper::SerType;
+use atlas_common::serialization_helper::SerMsg;
 use atlas_communication::message::Header;
 use atlas_communication::reconfiguration::NetworkInformationProvider;
 
@@ -13,7 +13,7 @@ use atlas_core::serialize::NoProtocol;
 /// This allows us to have any log transfer protocol work with the same backbone
 pub trait LogTransferMessage<RQ, OP>: Send + Sync {
     /// The message type for the log transfer protocol
-    type LogTransferMessage: SerType + 'static;
+    type LogTransferMessage: SerMsg + 'static;
 
     /// Verify the message and return the message if it is valid
     fn verify_log_message<NI, LVH>(

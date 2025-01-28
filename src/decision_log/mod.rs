@@ -11,17 +11,16 @@ use atlas_common::globals::ReadOnly;
 use atlas_common::maybe_vec::MaybeVec;
 use atlas_common::node_id::NodeId;
 use atlas_common::ordering::{Orderable, SeqNo};
-use atlas_common::serialization_helper::SerType;
+use atlas_common::serialization_helper::SerMsg;
 use atlas_communication::message::StoredMessage;
 use atlas_core::executor::DecisionExecutorHandle;
 use atlas_core::messages::ClientRqInfo;
 use atlas_core::ordering_protocol::loggable::{
-    LoggableOrderProtocol, PProof, PersistentOrderProtocolTypes,
+    LoggableOrderProtocol, PProof,
 };
 use atlas_core::ordering_protocol::networking::serialize::OrderingProtocolMessage;
-use atlas_core::ordering_protocol::{
-    BatchedDecision, Decision, DecisionMetadata, ProtocolMessage, ShareableConsensusMessage,
-};
+use atlas_core::ordering_protocol::{BatchedDecision, Decision, DecisionAD, DecisionMetadata, ProtocolMessage, ShareableConsensusMessage};
+use atlas_core::ordering_protocol::loggable::message::PersistentOrderProtocolTypes;
 
 pub type DecLog<RQ, OP, POP, LS> = <LS as DecisionLogMessage<RQ, OP, POP>>::DecLog;
 pub type DecLogMetadata<RQ, OP, POP, LS> = <LS as DecisionLogMessage<RQ, OP, POP>>::DecLogMetadata;
@@ -83,7 +82,7 @@ pub trait DecisionLog<RQ, OP>:
         Self::LogSerialization,
     >
 where
-    RQ: SerType,
+    RQ: SerMsg,
     OP: LoggableOrderProtocol<RQ>,
 {
     /// The serialization type containing the serializable parts for the decision log
@@ -106,6 +105,7 @@ where
         &mut self,
         decision_info: Decision<
             DecisionMetadata<RQ, OP::Serialization>,
+            DecisionAD<RQ, OP::Serialization>,
             ProtocolMessage<RQ, OP::Serialization>,
             RQ,
         >,
@@ -164,7 +164,7 @@ where
 
 pub trait PartiallyWriteableDecLog<RQ, OP>: DecisionLog<RQ, OP>
 where
-    RQ: SerType,
+    RQ: SerMsg,
     OP: LoggableOrderProtocol<RQ>,
 {
     fn start_installing_log(&mut self) -> Result<()>;
@@ -179,7 +179,7 @@ where
 
 pub trait DecisionLogInitializer<RQ, OP, PL, EX>: DecisionLog<RQ, OP>
 where
-    RQ: SerType,
+    RQ: SerMsg,
     OP: LoggableOrderProtocol<RQ>,
 {
     /// Initialize the decision log of the
@@ -234,7 +234,7 @@ pub fn wrap_loggable_message<RQ, OP, POP>(
 where
     OP: OrderingProtocolMessage<RQ>,
 {
-    Arc::new(ReadOnly::new(message))
+    Arc::new(message)
 }
 
 impl<O> LoggedDecision<O> {
