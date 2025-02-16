@@ -1,11 +1,11 @@
 use atlas_common::ordering::{Orderable, SeqNo};
 use atlas_common::serialization_helper::SerMsg;
 use atlas_communication::reconfiguration::NetworkInformationProvider;
+use atlas_core::ordering_protocol::loggable::message::PersistentOrderProtocolTypes;
 use atlas_core::ordering_protocol::networking::serialize::{
     OrderProtocolVerificationHelper, OrderingProtocolMessage,
 };
 use std::sync::Arc;
-use atlas_core::ordering_protocol::loggable::message::PersistentOrderProtocolTypes;
 
 pub trait OrderProtocolLog: Orderable {
     // At the moment I only need orderable, but I might need more in the future

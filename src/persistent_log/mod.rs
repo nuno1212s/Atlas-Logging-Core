@@ -2,10 +2,10 @@ use crate::decision_log::serialize::DecisionLogMessage;
 use crate::decision_log::{DecLog, DecLogMetadata, LoggingDecision};
 use atlas_common::ordering::SeqNo;
 use atlas_common::serialization_helper::SerMsg;
-use atlas_core::ordering_protocol::loggable::{PProof};
+use atlas_core::ordering_protocol::loggable::message::PersistentOrderProtocolTypes;
+use atlas_core::ordering_protocol::loggable::PProof;
 use atlas_core::ordering_protocol::networking::serialize::OrderingProtocolMessage;
 use atlas_core::ordering_protocol::BatchedDecision;
-use atlas_core::ordering_protocol::loggable::message::PersistentOrderProtocolTypes;
 use atlas_core::persistent_log::{OperationMode, OrderingProtocolLog};
 
 /// The trait that defines the the persistent decision log, so that the decision log can be persistent

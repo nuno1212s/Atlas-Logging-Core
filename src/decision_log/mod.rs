@@ -15,12 +15,13 @@ use atlas_common::serialization_helper::SerMsg;
 use atlas_communication::message::StoredMessage;
 use atlas_core::executor::DecisionExecutorHandle;
 use atlas_core::messages::ClientRqInfo;
-use atlas_core::ordering_protocol::loggable::{
-    LoggableOrderProtocol, PProof,
-};
-use atlas_core::ordering_protocol::networking::serialize::OrderingProtocolMessage;
-use atlas_core::ordering_protocol::{BatchedDecision, Decision, DecisionAD, DecisionMetadata, ProtocolMessage, ShareableConsensusMessage};
 use atlas_core::ordering_protocol::loggable::message::PersistentOrderProtocolTypes;
+use atlas_core::ordering_protocol::loggable::{LoggableOrderProtocol, PProof};
+use atlas_core::ordering_protocol::networking::serialize::OrderingProtocolMessage;
+use atlas_core::ordering_protocol::{
+    BatchedDecision, Decision, DecisionAD, DecisionMetadata, ProtocolMessage,
+    ShareableConsensusMessage,
+};
 
 pub type DecLog<RQ, OP, POP, LS> = <LS as DecisionLogMessage<RQ, OP, POP>>::DecLog;
 pub type DecLogMetadata<RQ, OP, POP, LS> = <LS as DecisionLogMessage<RQ, OP, POP>>::DecLogMetadata;
