@@ -7,7 +7,6 @@ use crate::decision_log::serialize::DecisionLogMessage;
 use crate::persistent_log::PersistentDecisionLog;
 use atlas_common::crypto::hash::Digest;
 use atlas_common::error::*;
-use atlas_common::globals::ReadOnly;
 use atlas_common::maybe_vec::MaybeVec;
 use atlas_common::node_id::NodeId;
 use atlas_common::ordering::{Orderable, SeqNo};
@@ -73,7 +72,6 @@ pub trait RangeOrderable: Orderable {
 ///
 /// Also important, the [Orderable] trait implemented here should return the sequence
 /// number of the last DECIDED decision, not of the ongoing decisions
-///
 pub trait DecisionLog<RQ, OP>:
     RangeOrderable
     + DecisionLogPersistenceHelper<
