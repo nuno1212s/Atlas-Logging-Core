@@ -10,14 +10,9 @@ serialize_serde = ["serde"]
 serialize_capnp = []
 
 [dependencies]
-tracing = "*"
-
-anyhow = "1.0"
-thiserror = "1.0"
 
 atlas-common = { path = "../Atlas-Common" }
 atlas-communication = { path = "../Atlas-Communication" }
 atlas-core = { path = "../Atlas-Core" }
 
-atlas-metrics = { path = "../Atlas-Metrics" }
 serde = { version = "*", optional = true }

@@ -17,9 +17,10 @@ use atlas_core::timeouts::timeout::{TimeoutModHandle, TimeoutableMod};
 
 pub mod networking;
 
-pub type LogTM<RQ, OP, M> = <M as LogTransferMessage<RQ, OP>>::LogTransferMessage;
+pub type LogTM<RQ, OP, M: LogTransferMessage<RQ, OP>> = <M as LogTransferMessage<RQ, OP>>::LogTransferMessage;
 
 /// The result of processing a message in the log transfer protocol
+#[allow(clippy::large_enum_variant)]
 pub enum LTResult<RQ> {
     RunLTP,
     NotNeeded,
@@ -143,10 +144,10 @@ impl<RQ: SerMsg> Debug for LTResult<RQ> {
                 write!(f, "Running")
             }
             LTResult::LTPFinished(first, last, _) => {
-                write!(f, "LTPFinished({:?}, {:?})", first, last)
+                write!(f, "LTPFinished({first:?}, {last:?})")
             }
             LTResult::InstallSeq(seq) => {
-                write!(f, "LTPInstallSeq({:?})", seq)
+                write!(f, "LTPInstallSeq({seq:?})")
             }
             LTResult::Ignored => {
                 write!(f, "Ignored Message")
